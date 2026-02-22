@@ -1,0 +1,11 @@
+{
+  "Id": "hexvane_abilityapi_dark_vision",
+  "Name": "abilityapi.effect.dark_vision",
+  "ApplicationEffects": {
+    "ScreenEffect": "ScreenEffects/hexvane_abilityapi_dark_vision.png"
+  },
+  "Duration": 3600,
+  "OverlapBehavior": "Overwrite",
+  "Infinite": false,
+  "Debuff": false
+}

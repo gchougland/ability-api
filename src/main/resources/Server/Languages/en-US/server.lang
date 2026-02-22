@@ -1,0 +1,18 @@
+# AbilityAPI command and ability strings
+ability.command.description=Ability management commands
+ability.command.add.description=Grant an ability
+ability.command.remove.description=Remove an ability
+ability.command.list.description=List your abilities
+ability.command.available.description=List all available ability IDs and descriptions
+
+# Ability display names
+ability.creative_flight=Creative Flight
+ability.waterbreathing=Waterbreathing
+ability.oxygen=Extra Oxygen
+ability.fall_damage_immunity=Fall Damage Immunity
+ability.mining_fortune=Mining Fortune
+ability.unlimited_arrows=Unlimited Arrows
+ability.dark_vision=Dark-vision
+
+# Entity effect display names
+abilityapi.effect.dark_vision=Dark-vision

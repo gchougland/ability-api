@@ -1,0 +1,13 @@
+[versions]
+jetbrains-annotations = "26.0.2-1"
+jspecify = "1.0.0"
+nimbus-jose-jwt = "9.37.3"
+
+[libraries]
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
+jspecify = { module = "org.jspecify:jspecify", version.ref = "jspecify" }
+nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbus-jose-jwt" }
+
+[bundles]
+
+[plugins]
