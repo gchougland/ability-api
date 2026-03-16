@@ -33,8 +33,7 @@ public final class UnlimitedArrowsListener {
         if (player.getWorld() == null) return;
         com.hypixel.hytale.server.core.universe.PlayerRef playerRef = player.getPlayerRef();
         if (playerRef == null) return;
-        String worldName = player.getWorld().getName();
-        AbilityValue ability = PlayerAbilityStorage.getAbility(playerRef.getUuid(), worldName, "unlimited_arrows");
+        AbilityValue ability = PlayerAbilityStorage.getAbility(playerRef.getUuid(), "unlimited_arrows");
         if (ability == null || !ability.isPresent() || !ability.asBoolean()) return;
 
         ItemContainer container = event.getItemContainer();

@@ -48,7 +48,7 @@ public class AbilityInitSystem extends EntityTickingSystem<EntityStore> {
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        String key = playerRefComponent.getUuid() + ":" + world.getName();
+        String key = playerRefComponent.getUuid().toString();
         if (!initializedPlayers.add(key)) return;
 
         AbilityStatService.applyForPlayer(ref, store, world);

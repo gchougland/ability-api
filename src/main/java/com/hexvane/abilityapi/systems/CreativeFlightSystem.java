@@ -1,6 +1,6 @@
 package com.hexvane.abilityapi.systems;
 
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.query.Query;
@@ -55,7 +55,7 @@ public class CreativeFlightSystem extends EntityTickingSystem<EntityStore> {
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        boolean hasAbility = PlayerAbilityStorage.hasAbility(playerRefComponent.getUuid(), world.getName(), "creative_flight");
+        boolean hasAbility = AbilityConditionService.isAbilityActive(ref, store, world, playerRefComponent.getUuid(), "creative_flight");
         boolean isCreative = playerComponent.getGameMode() == GameMode.Creative;
 
         if (hasAbility && !isCreative) {

@@ -1,6 +1,5 @@
 package com.hexvane.abilityapi.systems;
 
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.query.Query;
@@ -72,8 +71,11 @@ public class AbilityDamageResistanceSystem extends DamageEventSystem {
 
         String causeId = damageCause.getId();
         if (causeId == null) return;
+        var ref = archetypeChunk.getReferenceTo(index);
+        if (ref == null || !ref.isValid()) return;
+
         String abilityId = "resistance_" + causeId.toLowerCase();
-        var abilityValue = PlayerAbilityStorage.getAbility(playerRefComponent.getUuid(), world.getName(), abilityId);
+        var abilityValue = AbilityConditionService.getActiveAbilityValue(ref, store, world, playerRefComponent.getUuid(), abilityId);
         if (abilityValue == null || !abilityValue.isPresent()) return;
 
         Object raw = abilityValue.getRaw();

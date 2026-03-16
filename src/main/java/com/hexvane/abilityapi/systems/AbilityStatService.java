@@ -1,7 +1,6 @@
 package com.hexvane.abilityapi.systems;
 
 import com.hexvane.abilityapi.ability.AbilityValue;
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.ComponentAccessor;
 import com.hypixel.hytale.server.core.entity.entities.Player;
@@ -49,11 +48,10 @@ public final class AbilityStatService {
         EntityStatMap statMap = store.getComponent(ref, EntityStatMap.getComponentType());
         if (statMap == null) return;
 
-        String worldName = world.getName();
         UUID uuid = playerRefComponent.getUuid();
 
         // --- Oxygen: ADDITIVE modifier on max ---
-        AbilityValue oxygenAbility = PlayerAbilityStorage.getAbility(uuid, worldName, "oxygen");
+        AbilityValue oxygenAbility = AbilityConditionService.getActiveAbilityValue(ref, store, world, uuid, "oxygen");
         float extraOxygen = oxygenAbility != null && oxygenAbility.isPresent() && oxygenAbility.asNumber() > 0
                 ? (float) (oxygenAbility.asNumber() * OXYGEN_PER_SECOND)
                 : 0f;
@@ -71,8 +69,8 @@ public final class AbilityStatService {
         // --- Move speed and swim speed: apply to MovementSettings ---
         MovementManager movementManager = store.getComponent(ref, EntityModule.get().getMovementManagerComponentType());
         if (movementManager != null) {
-            AbilityValue moveSpeedAbility = PlayerAbilityStorage.getAbility(uuid, worldName, "move_speed");
-            AbilityValue swimSpeedAbility = PlayerAbilityStorage.getAbility(uuid, worldName, "swim_speed");
+            AbilityValue moveSpeedAbility = AbilityConditionService.getActiveAbilityValue(ref, store, world, uuid, "move_speed");
+            AbilityValue swimSpeedAbility = AbilityConditionService.getActiveAbilityValue(ref, store, world, uuid, "swim_speed");
             float defaultBaseSpeed = movementManager.getDefaultSettings().baseSpeed;
             double moveMultiplier = 1.0;
             if (moveSpeedAbility != null && moveSpeedAbility.isPresent() && moveSpeedAbility.getRaw() instanceof Number n) {

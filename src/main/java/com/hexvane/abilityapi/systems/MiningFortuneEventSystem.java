@@ -1,7 +1,7 @@
 package com.hexvane.abilityapi.systems;
 
 import com.hexvane.abilityapi.config.MiningFortuneConfig;
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.AddReason;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
@@ -58,7 +58,7 @@ public class MiningFortuneEventSystem extends EntityEventSystem<EntityStore, Bre
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        var abilityValue = PlayerAbilityStorage.getAbility(playerRefComponent.getUuid(), world.getName(), "mining_fortune");
+        var abilityValue = AbilityConditionService.getActiveAbilityValue(ref, store, world, playerRefComponent.getUuid(), "mining_fortune");
         if (abilityValue == null || !abilityValue.isPresent() || !(abilityValue.getRaw() instanceof Number n)) return;
 
         int level = n.intValue();

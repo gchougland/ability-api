@@ -1,7 +1,7 @@
 package com.hexvane.abilityapi.systems;
 
 import com.hexvane.abilityapi.ability.AbilityValue;
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -87,7 +87,7 @@ public class AbilityPunchDamageSystem extends DamageEventSystem {
         World world = store.getExternalData().getWorld();
         if (world == null) return;
 
-        AbilityValue punchDamageAbility = PlayerAbilityStorage.getAbility(attackerPlayerRef.getUuid(), world.getName(), "punch_damage");
+        AbilityValue punchDamageAbility = AbilityConditionService.getActiveAbilityValue(attackerRef, store, world, attackerPlayerRef.getUuid(), "punch_damage");
         if (punchDamageAbility == null || !punchDamageAbility.isPresent()) return;
 
         Object raw = punchDamageAbility.getRaw();

@@ -1,6 +1,6 @@
 package com.hexvane.abilityapi.systems;
 
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.query.Query;
@@ -50,7 +50,7 @@ public class WaterbreathingSystem extends EntityTickingSystem<EntityStore> {
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        if (!PlayerAbilityStorage.hasAbility(playerRefComponent.getUuid(), world.getName(), "waterbreathing")) {
+        if (!AbilityConditionService.isAbilityActive(ref, store, world, playerRefComponent.getUuid(), "waterbreathing")) {
             return;
         }
 

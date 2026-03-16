@@ -46,9 +46,8 @@ public class MovementAbilitiesReapplySystem extends EntityTickingSystem<EntitySt
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        String worldName = world.getName();
-        if (!PlayerAbilityStorage.hasAbility(playerRefComponent.getUuid(), worldName, "move_speed")
-                && !PlayerAbilityStorage.hasAbility(playerRefComponent.getUuid(), worldName, "swim_speed")) {
+        if (!PlayerAbilityStorage.hasAbility(playerRefComponent.getUuid(), "move_speed")
+                && !PlayerAbilityStorage.hasAbility(playerRefComponent.getUuid(), "swim_speed")) {
             return;
         }
 

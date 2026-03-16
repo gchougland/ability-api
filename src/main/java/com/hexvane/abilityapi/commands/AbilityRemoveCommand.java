@@ -48,7 +48,7 @@ public class AbilityRemoveCommand extends AbstractPlayerCommand {
             context.sendMessage(Message.raw("Unknown ability: " + abilityId));
             return;
         }
-        PlayerAbilityStorage.removeAbility(playerRef.getUuid(), world.getName(), abilityId);
+        PlayerAbilityStorage.removeAbility(playerRef.getUuid(), abilityId);
         AbilityStatService.applyForPlayer(ref, store, world);
         context.sendMessage(Message.raw("Removed " + abilityId));
     }

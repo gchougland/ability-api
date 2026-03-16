@@ -1,0 +1,185 @@
+package com.hexvane.abilityapi.systems;
+
+import com.hexvane.abilityapi.ability.AbilityConditionSpec;
+import com.hexvane.abilityapi.ability.AbilityValue;
+import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.zone.ZoneResolver;
+import com.hypixel.hytale.component.ComponentAccessor;
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
+import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import java.util.List;
+import java.util.logging.Level;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+/**
+ * Evaluates whether an ability is currently active for a player, taking into account
+ * optional conditions (e.g. in_zone). Use this for abilities that have conditions;
+ * systems use this so that zone and other conditions are respected.
+ * <p>
+ * Debug logging: set the log level for this class to FINE (e.g. in your logging config)
+ * to see when conditions are evaluated and whether they pass (e.g. in_zone(3): currentZone=2, passed=false).
+ */
+public final class AbilityConditionService {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
+
+    private AbilityConditionService() {}
+
+    /** Returns the logger used by this service (e.g. to set level to FINE from plugin setup). */
+    @Nonnull
+    public static HytaleLogger getLogger() {
+        return LOGGER;
+    }
+
+    /**
+     * Returns true if the ability is set for the player and all its conditions pass
+     * in the current context (e.g. player position for zone).
+     */
+    public static boolean isAbilityActive(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull World world,
+            @Nonnull java.util.UUID playerId,
+            @Nonnull String abilityId) {
+        return getActiveAbilityValue(ref, store, world, playerId, abilityId) != null;
+    }
+
+    /**
+     * Returns the ability value if the ability is set and all conditions pass; otherwise null.
+     * Use this when applying conditional abilities (e.g. stamina_regen in zone 3).
+     */
+    @Nullable
+    public static AbilityValue getActiveAbilityValue(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull World world,
+            @Nonnull java.util.UUID playerId,
+            @Nonnull String abilityId) {
+        AbilityValue value = PlayerAbilityStorage.getAbility(playerId, abilityId);
+        if (value == null || !value.isPresent()) return null;
+
+        List<AbilityConditionSpec> conditions = PlayerAbilityStorage.getConditions(playerId, abilityId);
+        if (conditions == null || conditions.isEmpty()) return value;
+
+        LOGGER.at(Level.FINE).log("Evaluating %d condition(s) for ability '%s'", conditions.size(), abilityId);
+        for (AbilityConditionSpec cond : conditions) {
+            boolean passed = evaluate(ref, store, world, abilityId, cond);
+            LOGGER.at(Level.FINE).log("  Condition %s(%s): passed=%s", cond.type(), cond.param(), passed);
+            if (!passed) return null;
+        }
+        LOGGER.at(Level.FINE).log("All conditions passed for ability '%s' -> active", abilityId);
+        return value;
+    }
+
+    private static boolean evaluate(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull World world,
+            @Nonnull String abilityId,
+            @Nonnull AbilityConditionSpec cond) {
+        if (AbilityConditionSpec.TYPE_IN_ZONE.equals(cond.type())) {
+            return evaluateInZone(ref, store, world, abilityId, cond.allowedZoneIds());
+        }
+        if (AbilityConditionSpec.TYPE_HEALTH_BELOW.equals(cond.type())) {
+            return evaluateHealthBelow(ref, store, abilityId, cond.param());
+        }
+        if (AbilityConditionSpec.TYPE_HEALTH_ABOVE.equals(cond.type())) {
+            return evaluateHealthAbove(ref, store, abilityId, cond.param());
+        }
+        LOGGER.at(Level.FINE).log("  Unknown condition type '%s' for ability '%s' -> false", cond.type(), abilityId);
+        return false;
+    }
+
+    private static boolean evaluateHealthBelow(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull String abilityId,
+            int thresholdPercent) {
+        EntityStatMap statMap = store.getComponent(ref, EntityStatMap.getComponentType());
+        if (statMap == null) {
+            LOGGER.at(Level.FINE).log("  health_below(%d): no EntityStatMap -> false", thresholdPercent);
+            return false;
+        }
+        int healthIndex = EntityStatType.getAssetMap().getIndex("Health");
+        if (healthIndex < 0 || healthIndex >= statMap.size()) {
+            LOGGER.at(Level.FINE).log("  health_below(%d): no Health stat -> false", thresholdPercent);
+            return false;
+        }
+        EntityStatValue healthStat = statMap.get(healthIndex);
+        if (healthStat == null) {
+            LOGGER.at(Level.FINE).log("  health_below(%d): null Health stat -> false", thresholdPercent);
+            return false;
+        }
+        float current = healthStat.get();
+        float max = healthStat.getMax();
+        if (max <= 0f) {
+            LOGGER.at(Level.FINE).log("  health_below(%d): maxHealth<=0 -> false", thresholdPercent);
+            return false;
+        }
+        float percent = (current / max) * 100f;
+        boolean passed = percent < thresholdPercent;
+        LOGGER.at(Level.FINE).log("  health_below(%d): current=%.1f%%, passed=%s", thresholdPercent, percent, passed);
+        return passed;
+    }
+
+    private static boolean evaluateHealthAbove(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull String abilityId,
+            int thresholdPercent) {
+        EntityStatMap statMap = store.getComponent(ref, EntityStatMap.getComponentType());
+        if (statMap == null) {
+            LOGGER.at(Level.FINE).log("  health_above(%d): no EntityStatMap -> false", thresholdPercent);
+            return false;
+        }
+        int healthIndex = EntityStatType.getAssetMap().getIndex("Health");
+        if (healthIndex < 0 || healthIndex >= statMap.size()) {
+            LOGGER.at(Level.FINE).log("  health_above(%d): no Health stat -> false", thresholdPercent);
+            return false;
+        }
+        EntityStatValue healthStat = statMap.get(healthIndex);
+        if (healthStat == null) {
+            LOGGER.at(Level.FINE).log("  health_above(%d): null Health stat -> false", thresholdPercent);
+            return false;
+        }
+        float current = healthStat.get();
+        float max = healthStat.getMax();
+        if (max <= 0f) {
+            LOGGER.at(Level.FINE).log("  health_above(%d): maxHealth<=0 -> false", thresholdPercent);
+            return false;
+        }
+        float percent = (current / max) * 100f;
+        boolean passed = percent >= thresholdPercent;
+        LOGGER.at(Level.FINE).log("  health_above(%d): current=%.1f%%, passed=%s", thresholdPercent, percent, passed);
+        return passed;
+    }
+
+    private static boolean evaluateInZone(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull World world,
+            @Nonnull String abilityId,
+            @Nonnull List<Integer> allowedZoneIds) {
+        TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
+        if (transform == null) {
+            LOGGER.at(Level.FINE).log("  in_zone(%s): no transform -> false", allowedZoneIds);
+            return false;
+        }
+        var pos = transform.getPosition();
+        int blockX = (int) Math.floor(pos.x);
+        int blockZ = (int) Math.floor(pos.z);
+        int currentZone = ZoneResolver.getZoneAt(world, blockX, blockZ);
+        boolean passed = allowedZoneIds.contains(currentZone);
+        LOGGER.at(Level.FINE).log("  in_zone(%s): currentZone=%d (block %d, %d) -> %s",
+                allowedZoneIds, currentZone, blockX, blockZ, passed);
+        LOGGER.at(Level.INFO).log("Ability zone check: currentZone=%d, allowedZones=%s, active=%s (block %d, %d)",
+                currentZone, allowedZoneIds, passed, blockX, blockZ);
+        return passed;
+    }
+}

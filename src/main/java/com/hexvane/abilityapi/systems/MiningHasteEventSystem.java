@@ -1,6 +1,6 @@
 package com.hexvane.abilityapi.systems;
 
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
@@ -40,7 +40,7 @@ public class MiningHasteEventSystem extends EntityEventSystem<EntityStore, Damag
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        var abilityValue = PlayerAbilityStorage.getAbility(playerRefComponent.getUuid(), world.getName(), "mining_haste");
+        var abilityValue = AbilityConditionService.getActiveAbilityValue(ref, store, world, playerRefComponent.getUuid(), "mining_haste");
         if (abilityValue == null || !abilityValue.isPresent() || !(abilityValue.getRaw() instanceof Number n)) return;
 
         int level = n.intValue();

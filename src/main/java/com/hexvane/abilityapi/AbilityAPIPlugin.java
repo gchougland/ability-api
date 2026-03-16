@@ -6,7 +6,9 @@ import com.hexvane.abilityapi.ability.AbilityType;
 import com.hexvane.abilityapi.commands.AbilityCommand;
 import com.hexvane.abilityapi.config.MiningFortuneConfig;
 import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hexvane.abilityapi.systems.AbilityDamageResistanceSystem;
+import com.hexvane.abilityapi.systems.ConditionZoneCheckSystem;
 import com.hexvane.abilityapi.systems.AbilityInitSystem;
 import com.hexvane.abilityapi.systems.AbilityPunchDamageSystem;
 import com.hexvane.abilityapi.systems.AbilityStrengthSystem;
@@ -15,12 +17,15 @@ import com.hexvane.abilityapi.systems.DarkVisionSystem;
 import com.hexvane.abilityapi.systems.FallDamageImmunitySystem;
 import com.hexvane.abilityapi.systems.MiningFortuneEventSystem;
 import com.hexvane.abilityapi.systems.MiningHasteEventSystem;
+import com.hexvane.abilityapi.systems.ConditionalStatSystem;
 import com.hexvane.abilityapi.systems.MovementAbilitiesReapplySystem;
+import com.hexvane.abilityapi.systems.SecondChanceSystem;
 import com.hexvane.abilityapi.systems.WallClimbSystem;
 import com.hexvane.abilityapi.systems.WaterbreathingSystem;
 import com.hexvane.abilityapi.listeners.UnlimitedArrowsListener;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
+import java.util.logging.Level;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -40,6 +45,8 @@ public class AbilityAPIPlugin extends JavaPlugin {
     protected void setup() {
         PlayerAbilityStorage.initialize(this.getDataDirectory());
         MiningFortuneConfig.initialize(this.getDataDirectory());
+
+        AbilityConditionService.getLogger().setLevel(Level.FINE);
 
         AbilityRegistry.register(new AbilityDefinition(
                 "creative_flight", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Allow creative-style flight"));
@@ -68,6 +75,10 @@ public class AbilityAPIPlugin extends JavaPlugin {
                 "unlimited_arrows", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Do not consume arrows when shooting"));
         AbilityRegistry.register(new AbilityDefinition(
                 "dark_vision", AbilityType.BINARY, Boolean.TRUE, 0, 1, "See in darkness (screen effect)"));
+        AbilityRegistry.register(new AbilityDefinition(
+                "stamina_regen", AbilityType.NUMERIC, 1.0, 1.0, 3.0, "Stamina regen multiplier when conditions met (1=normal, >1=faster; no slowdown)"));
+        AbilityRegistry.register(new AbilityDefinition(
+                "second_chance", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Prevent death once; restore to 20% health; 5 min cooldown"));
         // Per-damage-type resistance/weakness: 0=normal, 0..1=resistance, -1..0=weakness (all damage types from game)
         registerResistanceAbilitiesFromDamageCauses();
 
@@ -76,6 +87,7 @@ public class AbilityAPIPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new AbilityInitSystem());
         this.getEntityStoreRegistry().registerSystem(new MovementAbilitiesReapplySystem());
         this.getEntityStoreRegistry().registerSystem(new FallDamageImmunitySystem());
+        this.getEntityStoreRegistry().registerSystem(new SecondChanceSystem());
         this.getEntityStoreRegistry().registerSystem(new WallClimbSystem());
         this.getEntityStoreRegistry().registerSystem(new AbilityDamageResistanceSystem());
         this.getEntityStoreRegistry().registerSystem(new AbilityStrengthSystem());
@@ -83,6 +95,8 @@ public class AbilityAPIPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new MiningHasteEventSystem());
         this.getEntityStoreRegistry().registerSystem(new MiningFortuneEventSystem());
         this.getEntityStoreRegistry().registerSystem(new DarkVisionSystem());
+        this.getEntityStoreRegistry().registerSystem(new ConditionalStatSystem());
+        this.getEntityStoreRegistry().registerSystem(new ConditionZoneCheckSystem());
 
         this.getEventRegistry().registerGlobal(LivingEntityInventoryChangeEvent.class, UnlimitedArrowsListener::onLivingEntityInventoryChange);
 

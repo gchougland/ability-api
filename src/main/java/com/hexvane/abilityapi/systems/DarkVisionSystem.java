@@ -1,7 +1,7 @@
 package com.hexvane.abilityapi.systems;
 
 import com.hexvane.abilityapi.ability.AbilityValue;
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.query.Query;
@@ -57,8 +57,7 @@ public final class DarkVisionSystem extends EntityTickingSystem<EntityStore> {
         PlayerRef playerRef = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRef == null) return;
 
-        String worldName = world.getName();
-        AbilityValue ability = PlayerAbilityStorage.getAbility(playerRef.getUuid(), worldName, "dark_vision");
+        AbilityValue ability = AbilityConditionService.getActiveAbilityValue(ref, store, world, playerRef.getUuid(), "dark_vision");
         boolean hasAbility = ability != null && ability.isPresent() && ability.asBoolean();
 
         EntityEffect effect = EntityEffect.getAssetMap().getAsset(DARK_VISION_EFFECT_ID);

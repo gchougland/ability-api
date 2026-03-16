@@ -1,6 +1,6 @@
 package com.hexvane.abilityapi.systems;
 
-import com.hexvane.abilityapi.data.PlayerAbilityStorage;
+import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Store;
@@ -58,15 +58,15 @@ public class WallClimbSystem extends EntityTickingSystem<EntityStore> implements
         World world = store.getExternalData().getWorld();
         if (world == null) return;
 
+        var ref = archetypeChunk.getReferenceTo(index);
+        if (ref == null || !ref.isValid()) return;
+
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        if (!PlayerAbilityStorage.hasAbility(playerRefComponent.getUuid(), world.getName(), "wall_climb")) {
+        if (!AbilityConditionService.isAbilityActive(ref, store, world, playerRefComponent.getUuid(), "wall_climb")) {
             return;
         }
-
-        var ref = archetypeChunk.getReferenceTo(index);
-        if (ref == null || !ref.isValid()) return;
 
         MovementStatesComponent movementStatesComponent = store.getComponent(ref, MovementStatesComponent.getComponentType());
         if (movementStatesComponent == null) return;

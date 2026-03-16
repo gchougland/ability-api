@@ -1,6 +1,6 @@
 package com.hexvane.abilityapi.systems;
 
-import com.hexvane.abilityapi.systems.AbilityConditionService;
+import com.hexvane.abilityapi.data.SecondChanceCooldownStore;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -11,9 +11,11 @@ import com.hypixel.hytale.component.dependency.SystemGroupDependency;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
-import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -21,10 +23,12 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 /**
- * Prevents fall damage for players with the fall_damage_immunity ability.
+ * When a player with second_chance would take lethal damage, prevents death and restores
+ * them to 20% of max health. Enforces a 5-minute cooldown per player.
  */
-public class FallDamageImmunitySystem extends DamageEventSystem {
+public class SecondChanceSystem extends DamageEventSystem {
     private static final Query<EntityStore> QUERY = PlayerRef.getComponentType();
+    private static final float RESTORE_PERCENT = 0.2f;
 
     @Nonnull
     @Override
@@ -66,15 +70,43 @@ public class FallDamageImmunitySystem extends DamageEventSystem {
         PlayerRef playerRefComponent = archetypeChunk.getComponent(index, PlayerRef.getComponentType());
         if (playerRefComponent == null) return;
 
-        if (!AbilityConditionService.isAbilityActive(targetRef, store, world, playerRefComponent.getUuid(), "fall_damage_immunity")) {
+        if (!AbilityConditionService.isAbilityActive(targetRef, store, world, playerRefComponent.getUuid(), "second_chance")) {
+            return;
+        }
+        if (SecondChanceCooldownStore.isOnCooldown(playerRefComponent.getUuid())) {
             return;
         }
 
-        DamageCause damageCause = DamageCause.getAssetMap().getAsset(damage.getDamageCauseIndex());
-        if (damageCause == null) return;
+        EntityStatMap statMap = archetypeChunk.getComponent(index, EntityStatMap.getComponentType());
+        if (statMap == null) return;
 
-        if ("Fall".equals(damageCause.getId())) {
-            damage.setAmount(0);
+        int healthIndex = EntityStatType.getAssetMap().getIndex("Health");
+        if (healthIndex < 0 || healthIndex >= statMap.size()) return;
+
+        EntityStatValue healthStat = statMap.get(healthIndex);
+        if (healthStat == null) return;
+
+        float currentHealth = healthStat.get();
+        float maxHealth = healthStat.getMax();
+        if (maxHealth <= 0f) return;
+
+        float damageAmount = damage.getAmount();
+        if (damageAmount < currentHealth) {
+            return; // non-lethal
         }
+
+        // Trigger second chance: prevent death and restore to 20% max health
+        float targetHealth = RESTORE_PERCENT * maxHealth;
+        float newDamage = currentHealth - targetHealth;
+
+        if (newDamage <= 0f) {
+            damage.setAmount(0f);
+            float delta = targetHealth - currentHealth;
+            statMap.addStatValue(healthIndex, delta);
+        } else {
+            damage.setAmount(newDamage);
+        }
+
+        SecondChanceCooldownStore.recordUse(playerRefComponent.getUuid());
     }
 }
