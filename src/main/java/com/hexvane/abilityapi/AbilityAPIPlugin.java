@@ -25,7 +25,6 @@ import com.hexvane.abilityapi.systems.MovementAbilitiesReapplySystem;
 import com.hexvane.abilityapi.systems.SecondChanceSystem;
 import com.hexvane.abilityapi.systems.WallClimbSystem;
 import com.hexvane.abilityapi.systems.WaterbreathingSystem;
-import com.hexvane.abilityapi.listeners.UnlimitedArrowsListener;
 import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.server.core.event.events.entity.LivingEntityInventoryChangeEvent;
 import java.util.logging.Level;
@@ -75,8 +74,6 @@ public class AbilityAPIPlugin extends JavaPlugin {
         AbilityRegistry.register(new AbilityDefinition(
                 "wall_climb", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Climb any solid surface"));
         AbilityRegistry.register(new AbilityDefinition(
-                "unlimited_arrows", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Do not consume arrows when shooting"));
-        AbilityRegistry.register(new AbilityDefinition(
                 "dark_vision", AbilityType.BINARY, Boolean.TRUE, 0, 1, "See in darkness (screen effect)"));
         AbilityRegistry.register(new AbilityDefinition(
                 "stamina_regen", AbilityType.NUMERIC, 1.0, 1.0, 3.0, "Stamina regen multiplier when conditions met (1=normal, >1=faster; no slowdown)"));
@@ -107,8 +104,6 @@ public class AbilityAPIPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new ConditionalHealthRegenSystem());
         this.getEntityStoreRegistry().registerSystem(new ConditionZoneCheckSystem());
         this.getEntityStoreRegistry().registerSystem(new ItemMagnetSystem());
-
-        this.getEventRegistry().registerGlobal(LivingEntityInventoryChangeEvent.class, UnlimitedArrowsListener::onLivingEntityInventoryChange);
 
         this.getCommandRegistry().registerCommand(new AbilityCommand(this));
         LOGGER.atInfo().log("AbilityAPI setup complete");

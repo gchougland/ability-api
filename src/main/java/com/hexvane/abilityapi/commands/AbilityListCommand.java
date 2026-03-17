@@ -66,4 +66,10 @@ public class AbilityListCommand extends AbstractPlayerCommand {
         }
         context.sendMessage(Message.raw(sb.toString()));
     }
+    
+    @Override
+    protected boolean canGeneratePermission() {
+        return false;
+    }
+
 }
