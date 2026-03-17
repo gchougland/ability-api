@@ -15,6 +15,8 @@ import javax.annotation.Nullable;
  * condition passes when current health % is below that value.
  * For {@link #TYPE_HEALTH_ABOVE}: {@link #param()} is the health percentage threshold (0-100);
  * condition passes when current health % is at or above that value.
+ * For {@link #TYPE_TARGET_HEALTH_BELOW} / {@link #TYPE_TARGET_HEALTH_ABOVE}: same semantics but applied to the
+ * <b>target</b> of an action (e.g. damage victim). Only meaningful when evaluating in a damage context with a target ref.
  */
 public record AbilityConditionSpec(
         @Nonnull String type,
@@ -24,6 +26,8 @@ public record AbilityConditionSpec(
     public static final String TYPE_IN_ZONE = "in_zone";
     public static final String TYPE_HEALTH_BELOW = "health_below";
     public static final String TYPE_HEALTH_ABOVE = "health_above";
+    public static final String TYPE_TARGET_HEALTH_BELOW = "target_health_below";
+    public static final String TYPE_TARGET_HEALTH_ABOVE = "target_health_above";
 
     /** Backward-compatible constructor: single param only (zoneIds = null). */
     public AbilityConditionSpec(@Nonnull String type, int param) {

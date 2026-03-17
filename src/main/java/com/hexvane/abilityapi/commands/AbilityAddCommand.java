@@ -48,7 +48,7 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
         }
         String[] parts = SPACES.split(rawArgs, 3);
         if (parts.length < 1 || parts[0].isEmpty()) {
-            context.sendMessage(Message.raw("Usage: /ability add <ability_id> [value] [zone <id> [id...]] [health_below <percent>] [health_above <percent>]. Conditions: zone = currentZone from logs; health_below/health_above = active when health % below/above value (0-100)."));
+            context.sendMessage(Message.raw("Usage: /ability add <ability_id> [value] [zone <id> [id...]] [health_below|health_above|target_health_below|target_health_above <percent>]. target_* = victim's health % (for damage abilities)."));
             return;
         }
         String abilityId = parts[0];
@@ -98,7 +98,7 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
 
     /**
      * Parses optional condition key-value pairs from the remainder of the command.
-     * Supported: "zone &lt;id&gt; [id...]" -> in_zone; "health_below &lt;percent&gt;" / "health_above &lt;percent&gt;" (0-100).
+     * Supported: "zone &lt;id&gt; [id...]" -> in_zone; "health_below" / "health_above" / "target_health_below" / "target_health_above" &lt;percent&gt; (0-100).
      */
     @Nonnull
     private static List<AbilityConditionSpec> parseConditions(String rest) {
@@ -149,6 +149,26 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
                     }
                 } catch (NumberFormatException ignored) {
                     // skip invalid health_above value
+                }
+                i += 2;
+            } else if ("target_health_below".equals(key)) {
+                try {
+                    int percent = Integer.parseInt(tokens[i + 1]);
+                    if (percent >= 0 && percent <= 100) {
+                        out.add(new AbilityConditionSpec(AbilityConditionSpec.TYPE_TARGET_HEALTH_BELOW, percent));
+                    }
+                } catch (NumberFormatException ignored) {
+                    // skip invalid target_health_below value
+                }
+                i += 2;
+            } else if ("target_health_above".equals(key)) {
+                try {
+                    int percent = Integer.parseInt(tokens[i + 1]);
+                    if (percent >= 0 && percent <= 100) {
+                        out.add(new AbilityConditionSpec(AbilityConditionSpec.TYPE_TARGET_HEALTH_ABOVE, percent));
+                    }
+                } catch (NumberFormatException ignored) {
+                    // skip invalid target_health_above value
                 }
                 i += 2;
             } else {

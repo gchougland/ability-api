@@ -61,6 +61,23 @@ public final class AbilityConditionService {
             @Nonnull World world,
             @Nonnull java.util.UUID playerId,
             @Nonnull String abilityId) {
+        return getActiveAbilityValue(ref, store, world, playerId, abilityId, null);
+    }
+
+    /**
+     * Like {@link #getActiveAbilityValue(Ref, ComponentAccessor, World, java.util.UUID, String)} but supports
+     * target-based conditions (e.g. target_health_below). Pass the <b>target</b> entity ref when applying
+     * the ability in a damage context (e.g. the entity being damaged). If targetRef is null, target-based
+     * conditions fail.
+     */
+    @Nullable
+    public static AbilityValue getActiveAbilityValue(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull World world,
+            @Nonnull java.util.UUID playerId,
+            @Nonnull String abilityId,
+            @Nullable Ref<EntityStore> targetRef) {
         AbilityValue value = PlayerAbilityStorage.getAbility(playerId, abilityId);
         if (value == null || !value.isPresent()) return null;
 
@@ -69,7 +86,7 @@ public final class AbilityConditionService {
 
         LOGGER.at(Level.FINE).log("Evaluating %d condition(s) for ability '%s'", conditions.size(), abilityId);
         for (AbilityConditionSpec cond : conditions) {
-            boolean passed = evaluate(ref, store, world, abilityId, cond);
+            boolean passed = evaluate(ref, store, world, abilityId, cond, targetRef);
             LOGGER.at(Level.FINE).log("  Condition %s(%s): passed=%s", cond.type(), cond.param(), passed);
             if (!passed) return null;
         }
@@ -82,7 +99,8 @@ public final class AbilityConditionService {
             @Nonnull ComponentAccessor<EntityStore> store,
             @Nonnull World world,
             @Nonnull String abilityId,
-            @Nonnull AbilityConditionSpec cond) {
+            @Nonnull AbilityConditionSpec cond,
+            @Nullable Ref<EntityStore> targetRef) {
         if (AbilityConditionSpec.TYPE_IN_ZONE.equals(cond.type())) {
             return evaluateInZone(ref, store, world, abilityId, cond.allowedZoneIds());
         }
@@ -91,6 +109,12 @@ public final class AbilityConditionService {
         }
         if (AbilityConditionSpec.TYPE_HEALTH_ABOVE.equals(cond.type())) {
             return evaluateHealthAbove(ref, store, abilityId, cond.param());
+        }
+        if (AbilityConditionSpec.TYPE_TARGET_HEALTH_BELOW.equals(cond.type())) {
+            return evaluateTargetHealthBelow(store, abilityId, cond.param(), targetRef);
+        }
+        if (AbilityConditionSpec.TYPE_TARGET_HEALTH_ABOVE.equals(cond.type())) {
+            return evaluateTargetHealthAbove(store, abilityId, cond.param(), targetRef);
         }
         LOGGER.at(Level.FINE).log("  Unknown condition type '%s' for ability '%s' -> false", cond.type(), abilityId);
         return false;
@@ -157,6 +181,78 @@ public final class AbilityConditionService {
         float percent = (current / max) * 100f;
         boolean passed = percent >= thresholdPercent;
         LOGGER.at(Level.FINE).log("  health_above(%d): current=%.1f%%, passed=%s", thresholdPercent, percent, passed);
+        return passed;
+    }
+
+    private static boolean evaluateTargetHealthBelow(
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull String abilityId,
+            int thresholdPercent,
+            @Nullable Ref<EntityStore> targetRef) {
+        if (targetRef == null || !targetRef.isValid()) {
+            LOGGER.at(Level.FINE).log("  target_health_below(%d): no target ref -> false", thresholdPercent);
+            return false;
+        }
+        EntityStatMap statMap = store.getComponent(targetRef, EntityStatMap.getComponentType());
+        if (statMap == null) {
+            LOGGER.at(Level.FINE).log("  target_health_below(%d): no EntityStatMap -> false", thresholdPercent);
+            return false;
+        }
+        int healthIndex = EntityStatType.getAssetMap().getIndex("Health");
+        if (healthIndex < 0 || healthIndex >= statMap.size()) {
+            LOGGER.at(Level.FINE).log("  target_health_below(%d): no Health stat -> false", thresholdPercent);
+            return false;
+        }
+        EntityStatValue healthStat = statMap.get(healthIndex);
+        if (healthStat == null) {
+            LOGGER.at(Level.FINE).log("  target_health_below(%d): null Health stat -> false", thresholdPercent);
+            return false;
+        }
+        float current = healthStat.get();
+        float max = healthStat.getMax();
+        if (max <= 0f) {
+            LOGGER.at(Level.FINE).log("  target_health_below(%d): maxHealth<=0 -> false", thresholdPercent);
+            return false;
+        }
+        float percent = (current / max) * 100f;
+        boolean passed = percent < thresholdPercent;
+        LOGGER.at(Level.FINE).log("  target_health_below(%d): target=%.1f%%, passed=%s", thresholdPercent, percent, passed);
+        return passed;
+    }
+
+    private static boolean evaluateTargetHealthAbove(
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull String abilityId,
+            int thresholdPercent,
+            @Nullable Ref<EntityStore> targetRef) {
+        if (targetRef == null || !targetRef.isValid()) {
+            LOGGER.at(Level.FINE).log("  target_health_above(%d): no target ref -> false", thresholdPercent);
+            return false;
+        }
+        EntityStatMap statMap = store.getComponent(targetRef, EntityStatMap.getComponentType());
+        if (statMap == null) {
+            LOGGER.at(Level.FINE).log("  target_health_above(%d): no EntityStatMap -> false", thresholdPercent);
+            return false;
+        }
+        int healthIndex = EntityStatType.getAssetMap().getIndex("Health");
+        if (healthIndex < 0 || healthIndex >= statMap.size()) {
+            LOGGER.at(Level.FINE).log("  target_health_above(%d): no Health stat -> false", thresholdPercent);
+            return false;
+        }
+        EntityStatValue healthStat = statMap.get(healthIndex);
+        if (healthStat == null) {
+            LOGGER.at(Level.FINE).log("  target_health_above(%d): null Health stat -> false", thresholdPercent);
+            return false;
+        }
+        float current = healthStat.get();
+        float max = healthStat.getMax();
+        if (max <= 0f) {
+            LOGGER.at(Level.FINE).log("  target_health_above(%d): maxHealth<=0 -> false", thresholdPercent);
+            return false;
+        }
+        float percent = (current / max) * 100f;
+        boolean passed = percent >= thresholdPercent;
+        LOGGER.at(Level.FINE).log("  target_health_above(%d): target=%.1f%%, passed=%s", thresholdPercent, percent, passed);
         return passed;
     }
 

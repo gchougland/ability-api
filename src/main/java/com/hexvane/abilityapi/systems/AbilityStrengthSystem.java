@@ -1,7 +1,6 @@
 package com.hexvane.abilityapi.systems;
 
 import com.hexvane.abilityapi.ability.AbilityValue;
-import com.hexvane.abilityapi.systems.AbilityConditionService;
 import com.hypixel.hytale.component.ArchetypeChunk;
 import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
@@ -77,7 +76,8 @@ public class AbilityStrengthSystem extends DamageEventSystem {
         World world = store.getExternalData().getWorld();
         if (world == null) return;
 
-        AbilityValue strengthAbility = AbilityConditionService.getActiveAbilityValue(attackerRef, store, world, attackerPlayerRef.getUuid(), "strength");
+        Ref<EntityStore> targetRef = archetypeChunk.getReferenceTo(index);
+        AbilityValue strengthAbility = AbilityConditionService.getActiveAbilityValue(attackerRef, store, world, attackerPlayerRef.getUuid(), "strength", targetRef);
         if (strengthAbility == null || !strengthAbility.isPresent()) return;
 
         Object raw = strengthAbility.getRaw();
