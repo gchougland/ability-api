@@ -20,6 +20,7 @@ import com.hexvane.abilityapi.systems.MiningHasteEventSystem;
 import com.hexvane.abilityapi.systems.ConditionalHealthRegenSystem;
 import com.hexvane.abilityapi.systems.ConditionalStatSystem;
 import com.hexvane.abilityapi.systems.HealthRegenDelayRecordSystem;
+import com.hexvane.abilityapi.systems.ItemMagnetSystem;
 import com.hexvane.abilityapi.systems.MovementAbilitiesReapplySystem;
 import com.hexvane.abilityapi.systems.SecondChanceSystem;
 import com.hexvane.abilityapi.systems.WallClimbSystem;
@@ -48,7 +49,7 @@ public class AbilityAPIPlugin extends JavaPlugin {
         PlayerAbilityStorage.initialize(this.getDataDirectory());
         MiningFortuneConfig.initialize(this.getDataDirectory());
 
-        AbilityConditionService.getLogger().setLevel(Level.FINE);
+        //AbilityConditionService.getLogger().setLevel(Level.FINE);
 
         AbilityRegistry.register(new AbilityDefinition(
                 "creative_flight", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Allow creative-style flight"));
@@ -83,6 +84,8 @@ public class AbilityAPIPlugin extends JavaPlugin {
                 "second_chance", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Prevent death once; restore to 20% health; 5 min cooldown"));
         AbilityRegistry.register(new AbilityDefinition(
                 "health_regen", AbilityType.NUMERIC, 0.5, 0.1, 5.0, "Health regenerated per second when conditions met"));
+        AbilityRegistry.register(new AbilityDefinition(
+                "item_magnet", AbilityType.NUMERIC, 1.5, 1.0, 5.0, "Pull items from further away"));
         // Per-damage-type resistance/weakness: 0=normal, 0..1=resistance, -1..0=weakness (all damage types from game)
         registerResistanceAbilitiesFromDamageCauses();
 
@@ -103,6 +106,7 @@ public class AbilityAPIPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new HealthRegenDelayRecordSystem());
         this.getEntityStoreRegistry().registerSystem(new ConditionalHealthRegenSystem());
         this.getEntityStoreRegistry().registerSystem(new ConditionZoneCheckSystem());
+        this.getEntityStoreRegistry().registerSystem(new ItemMagnetSystem());
 
         this.getEventRegistry().registerGlobal(LivingEntityInventoryChangeEvent.class, UnlimitedArrowsListener::onLivingEntityInventoryChange);
 

@@ -324,8 +324,6 @@ public final class AbilityConditionService {
         boolean passed = allowedZoneIds.contains(currentZone);
         LOGGER.at(Level.FINE).log("  in_zone(%s): currentZone=%d (block %d, %d) -> %s",
                 allowedZoneIds, currentZone, blockX, blockZ, passed);
-        LOGGER.at(Level.INFO).log("Ability zone check: currentZone=%d, allowedZones=%s, active=%s (block %d, %d)",
-                currentZone, allowedZoneIds, passed, blockX, blockZ);
         return passed;
     }
 }

@@ -13,6 +13,7 @@ ability.fall_damage_immunity=Fall Damage Immunity
 ability.mining_fortune=Mining Fortune
 ability.unlimited_arrows=Unlimited Arrows
 ability.dark_vision=Dark-vision
+ability.item_magnet=Item Magnet
 
 # Entity effect display names
 abilityapi.effect.dark_vision=Dark-vision
