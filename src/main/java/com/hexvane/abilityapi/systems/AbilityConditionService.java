@@ -11,8 +11,12 @@ import com.hypixel.hytale.server.core.modules.entity.component.TransformComponen
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
+import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.world.World;
+import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
+import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.math.util.ChunkUtil;
 import java.util.List;
 import java.util.logging.Level;
 import javax.annotation.Nonnull;
@@ -116,8 +120,54 @@ public final class AbilityConditionService {
         if (AbilityConditionSpec.TYPE_TARGET_HEALTH_ABOVE.equals(cond.type())) {
             return evaluateTargetHealthAbove(store, abilityId, cond.param(), targetRef);
         }
+        if (AbilityConditionSpec.TYPE_IN_SUNLIGHT.equals(cond.type())) {
+            return evaluateInSunlight(ref, store, world, abilityId);
+        }
         LOGGER.at(Level.FINE).log("  Unknown condition type '%s' for ability '%s' -> false", cond.type(), abilityId);
         return false;
+    }
+
+    /** Min sunlight factor (0–1) for daytime; below this = night. */
+    private static final double MIN_SUNLIGHT_FACTOR = 0.2;
+    /** Min effective sunlight (skyLight * sunlightFactor) for "in sunlight"; 0–15 scale. */
+    private static final int MIN_EFFECTIVE_SUNLIGHT = 10;
+
+    private static boolean evaluateInSunlight(
+            @Nonnull Ref<EntityStore> ref,
+            @Nonnull ComponentAccessor<EntityStore> store,
+            @Nonnull World world,
+            @Nonnull String abilityId) {
+        WorldTimeResource worldTimeResource = store.getResource(WorldTimeResource.getResourceType());
+        if (worldTimeResource == null) {
+            LOGGER.at(Level.FINE).log("  in_sunlight: no WorldTimeResource -> false");
+            return false;
+        }
+        if (worldTimeResource.getSunlightFactor() < MIN_SUNLIGHT_FACTOR) {
+            LOGGER.at(Level.FINE).log("  in_sunlight: sunlightFactor=%.2f < %.2f (night) -> false",
+                    worldTimeResource.getSunlightFactor(), MIN_SUNLIGHT_FACTOR);
+            return false;
+        }
+        TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
+        if (transform == null) {
+            LOGGER.at(Level.FINE).log("  in_sunlight: no transform -> false");
+            return false;
+        }
+        var pos = transform.getPosition();
+        int blockX = (int) Math.floor(pos.x);
+        int blockY = (int) Math.floor(pos.y);
+        int blockZ = (int) Math.floor(pos.z);
+        WorldChunk chunk = world.getChunkIfInMemory(ChunkUtil.indexChunkFromBlock(blockX, blockZ));
+        if (chunk == null) {
+            LOGGER.at(Level.FINE).log("  in_sunlight: chunk not in memory (%d, %d) -> false", blockX, blockZ);
+            return false;
+        }
+        BlockChunk blockChunk = chunk.getBlockChunk();
+        byte skyLight = blockChunk.getSkyLight(blockX, blockY, blockZ);
+        int effectiveSunlight = (int) (skyLight * worldTimeResource.getSunlightFactor());
+        boolean passed = effectiveSunlight >= MIN_EFFECTIVE_SUNLIGHT;
+        LOGGER.at(Level.FINE).log("  in_sunlight: skyLight=%d, sunlightFactor=%.2f, effective=%d, passed=%s",
+                skyLight, worldTimeResource.getSunlightFactor(), effectiveSunlight, passed);
+        return passed;
     }
 
     private static boolean evaluateHealthBelow(

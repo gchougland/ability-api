@@ -17,7 +17,9 @@ import com.hexvane.abilityapi.systems.DarkVisionSystem;
 import com.hexvane.abilityapi.systems.FallDamageImmunitySystem;
 import com.hexvane.abilityapi.systems.MiningFortuneEventSystem;
 import com.hexvane.abilityapi.systems.MiningHasteEventSystem;
+import com.hexvane.abilityapi.systems.ConditionalHealthRegenSystem;
 import com.hexvane.abilityapi.systems.ConditionalStatSystem;
+import com.hexvane.abilityapi.systems.HealthRegenDelayRecordSystem;
 import com.hexvane.abilityapi.systems.MovementAbilitiesReapplySystem;
 import com.hexvane.abilityapi.systems.SecondChanceSystem;
 import com.hexvane.abilityapi.systems.WallClimbSystem;
@@ -79,6 +81,8 @@ public class AbilityAPIPlugin extends JavaPlugin {
                 "stamina_regen", AbilityType.NUMERIC, 1.0, 1.0, 3.0, "Stamina regen multiplier when conditions met (1=normal, >1=faster; no slowdown)"));
         AbilityRegistry.register(new AbilityDefinition(
                 "second_chance", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Prevent death once; restore to 20% health; 5 min cooldown"));
+        AbilityRegistry.register(new AbilityDefinition(
+                "health_regen", AbilityType.NUMERIC, 0.5, 0.1, 5.0, "Health regenerated per second when conditions met"));
         // Per-damage-type resistance/weakness: 0=normal, 0..1=resistance, -1..0=weakness (all damage types from game)
         registerResistanceAbilitiesFromDamageCauses();
 
@@ -96,6 +100,8 @@ public class AbilityAPIPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new MiningFortuneEventSystem());
         this.getEntityStoreRegistry().registerSystem(new DarkVisionSystem());
         this.getEntityStoreRegistry().registerSystem(new ConditionalStatSystem());
+        this.getEntityStoreRegistry().registerSystem(new HealthRegenDelayRecordSystem());
+        this.getEntityStoreRegistry().registerSystem(new ConditionalHealthRegenSystem());
         this.getEntityStoreRegistry().registerSystem(new ConditionZoneCheckSystem());
 
         this.getEventRegistry().registerGlobal(LivingEntityInventoryChangeEvent.class, UnlimitedArrowsListener::onLivingEntityInventoryChange);

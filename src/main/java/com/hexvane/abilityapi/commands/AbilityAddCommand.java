@@ -48,7 +48,7 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
         }
         String[] parts = SPACES.split(rawArgs, 3);
         if (parts.length < 1 || parts[0].isEmpty()) {
-            context.sendMessage(Message.raw("Usage: /ability add <ability_id> [value] [zone <id> [id...]] [health_below|health_above|target_health_below|target_health_above <percent>]. target_* = victim's health % (for damage abilities)."));
+            context.sendMessage(Message.raw("Usage: /ability add <ability_id> [value] [zone <id> [id...]] [sunlight] [health_below|health_above|target_health_below|target_health_above <percent>]. target_* = victim's health % (for damage abilities)."));
             return;
         }
         String abilityId = parts[0];
@@ -98,7 +98,7 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
 
     /**
      * Parses optional condition key-value pairs from the remainder of the command.
-     * Supported: "zone &lt;id&gt; [id...]" -> in_zone; "health_below" / "health_above" / "target_health_below" / "target_health_above" &lt;percent&gt; (0-100).
+     * Supported: "zone &lt;id&gt; [id...]" -> in_zone; "sunlight" / "in_sunlight" (no value); "health_below" / "health_above" / "target_health_below" / "target_health_above" &lt;percent&gt; (0-100).
      */
     @Nonnull
     private static List<AbilityConditionSpec> parseConditions(String rest) {
@@ -107,8 +107,13 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
         String[] tokens = SPACES.split(rest.trim());
         int i = 0;
         while (i < tokens.length) {
-            if (i + 1 >= tokens.length) break;
             String key = tokens[i].toLowerCase();
+            if ("sunlight".equals(key) || "in_sunlight".equals(key)) {
+                out.add(new AbilityConditionSpec(AbilityConditionSpec.TYPE_IN_SUNLIGHT, 0));
+                i += 1;
+                continue;
+            }
+            if (i + 1 >= tokens.length) break;
             if ("zone".equals(key)) {
                 List<Integer> ids = new ArrayList<>();
                 int j = i + 1;

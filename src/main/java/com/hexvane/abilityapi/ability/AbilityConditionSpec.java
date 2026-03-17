@@ -17,6 +17,8 @@ import javax.annotation.Nullable;
  * condition passes when current health % is at or above that value.
  * For {@link #TYPE_TARGET_HEALTH_BELOW} / {@link #TYPE_TARGET_HEALTH_ABOVE}: same semantics but applied to the
  * <b>target</b> of an action (e.g. damage victim). Only meaningful when evaluating in a damage context with a target ref.
+ * For {@link #TYPE_IN_SUNLIGHT}: no param; passes when it is daytime and the entity has open sky above
+ * (effective sunlight = skyLight × sunlightFactor above threshold).
  */
 public record AbilityConditionSpec(
         @Nonnull String type,
@@ -28,6 +30,7 @@ public record AbilityConditionSpec(
     public static final String TYPE_HEALTH_ABOVE = "health_above";
     public static final String TYPE_TARGET_HEALTH_BELOW = "target_health_below";
     public static final String TYPE_TARGET_HEALTH_ABOVE = "target_health_above";
+    public static final String TYPE_IN_SUNLIGHT = "in_sunlight";
 
     /** Backward-compatible constructor: single param only (zoneIds = null). */
     public AbilityConditionSpec(@Nonnull String type, int param) {

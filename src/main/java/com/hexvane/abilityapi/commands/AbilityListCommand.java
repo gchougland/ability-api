@@ -54,6 +54,8 @@ public class AbilityListCommand extends AbstractPlayerCommand {
                     AbilityConditionSpec c = conditions.get(i);
                     if (AbilityConditionSpec.TYPE_IN_ZONE.equals(c.type())) {
                         sb.append("zone ").append(c.allowedZoneIds().size() == 1 ? c.param() : String.join(" ", c.allowedZoneIds().stream().map(String::valueOf).toList()));
+                    } else if (AbilityConditionSpec.TYPE_IN_SUNLIGHT.equals(c.type())) {
+                        sb.append("sunlight");
                     } else {
                         sb.append(c.type()).append("=").append(c.param());
                     }
