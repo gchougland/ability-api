@@ -90,6 +90,6 @@ public final class AbilityStatService {
             movementManager.update(playerRefComponent.getPacketHandler());
         }
 
-        player.getStatModifiersManager().setRecalculate(true);
+        statMap.getStatModifiersManager().scheduleRecalculate();
     }
 }

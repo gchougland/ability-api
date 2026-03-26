@@ -14,6 +14,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.spatial.SpatialResource;
 import com.hypixel.hytale.component.spatial.SpatialStructure;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.logger.HytaleLogger;
 import com.hypixel.hytale.math.vector.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.EntityModule;
 import com.hypixel.hytale.server.core.modules.entity.component.Interactable;
@@ -24,8 +25,10 @@ import com.hypixel.hytale.server.core.modules.entity.system.PlayerSpatialSystem;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import javax.annotation.Nonnull;
 
 /**
@@ -35,6 +38,7 @@ import javax.annotation.Nonnull;
  * Runs after PlayerSpatialSystem. Must run on world thread (EntityTickingSystem).
  */
 public class ItemMagnetSystem extends EntityTickingSystem<EntityStore> {
+    private static final HytaleLogger LOGGER = HytaleLogger.forEnclosingClass();
 
     /** Base magnet radius in blocks when ability value is 1.0. */
     private static final double BASE_MAGNET_RANGE = 8.0;
@@ -103,21 +107,59 @@ public class ItemMagnetSystem extends EntityTickingSystem<EntityStore> {
         if (playerSpatialResource == null) return;
 
         SpatialStructure<Ref<EntityStore>> spatialStructure = playerSpatialResource.getSpatialStructure();
+        if (spatialStructure == null) return;
         double maxMagnetRadius = BASE_MAGNET_RANGE * MAX_ABILITY_VALUE;
-        List<Ref<EntityStore>> playerRefs = SpatialResource.getThreadLocalReferenceList();
-        spatialStructure.ordered(itemPosition, maxMagnetRadius, playerRefs);
+        List<Ref<EntityStore>> playerRefs;
+        try {
+            // Some worlds can tick this system without the spatial thread-local being initialized.
+            // Fallback to a fresh list in that case to prevent whole-world crashes.
+            playerRefs = SpatialResource.getThreadLocalReferenceList();
+        } catch (RuntimeException e) {
+            LOGGER.at(Level.FINE).log(
+                "Item magnet: falling back to fresh list for spatial ordering due to %s",
+                e.getClass().getName()
+            );
+            playerRefs = new ArrayList<>();
+        }
+        if (playerRefs == null) playerRefs = new ArrayList<>();
+        try {
+            playerRefs.clear();
+        } catch (RuntimeException e) {
+            playerRefs = new ArrayList<>();
+        }
+
+        try {
+            spatialStructure.ordered(itemPosition, maxMagnetRadius, playerRefs);
+        } catch (RuntimeException e) {
+            LOGGER.at(Level.FINE).log(
+                "Item magnet: spatial ordering failed due to %s",
+                e.getClass().getName()
+            );
+            return;
+        }
 
         Ref<EntityStore> targetPlayerRef = null;
 
         for (Ref<EntityStore> playerRef : playerRefs) {
             if (!playerRef.isValid()) continue;
-            if (store.getArchetype(playerRef).contains(DeathComponent.getComponentType())) continue;
+            try {
+                if (store.getArchetype(playerRef).contains(DeathComponent.getComponentType())) continue;
+            } catch (RuntimeException e) {
+                // Spatial ordering can return stale refs (e.g. during player removal).
+                // Treat them as non-candidates instead of crashing the entire world tick.
+                continue;
+            }
 
             PlayerRef playerRefComponent = store.getComponent(playerRef, PlayerRef.getComponentType());
             if (playerRefComponent == null) continue;
 
-            AbilityValue abilityValue = AbilityConditionService.getActiveAbilityValue(
-                playerRef, store, world, playerRefComponent.getUuid(), "item_magnet");
+            AbilityValue abilityValue;
+            try {
+                abilityValue = AbilityConditionService.getActiveAbilityValue(
+                    playerRef, store, world, playerRefComponent.getUuid(), "item_magnet");
+            } catch (RuntimeException e) {
+                continue;
+            }
             if (abilityValue == null || !abilityValue.isPresent() || !(abilityValue.getRaw() instanceof Number n)) continue;
 
             double value = n.doubleValue();

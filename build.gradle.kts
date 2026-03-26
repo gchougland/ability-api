@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.hexvane"
-version = "1.0.0"
+version = "1.1.0"
 val javaVersion = 25
 
 repositories {
@@ -28,7 +28,7 @@ hytale {
 
     // uncomment if you want to develop your mod against the pre-release version of the game.
     //
-    updateChannel = "pre-release"
+    //updateChannel = "pre-release"
 }
 
 java {
