@@ -17,14 +17,14 @@ For a full usage guide (commands, ability list, and integration examples), see:
 - **Ability registry** – central list of all ability IDs, types, default values, min/max, and descriptions.
 - **Persistent player storage** – per‑player ability state is saved to `player_abilities.json` and automatically re‑applied on login/server restart.
 - **Condition system** – supports context‑sensitive abilities via `AbilityConditionSpec` (e.g. `in_zone`, `in_sunlight`, `health_below`, `target_health_below`, and their `*_above` variants).
-- **ECS‑based handlers** – movement, stats, combat, and damage effects are implemented as Hytale entity systems (e.g. `CreativeFlightSystem`, `WaterbreathingSystem`, `AbilityStrengthSystem`, `AbilityDamageResistanceSystem`, `AbilityStatService`).
+- **ECS‑based handlers** – movement, stats, combat, and damage effects are implemented as Hytale entity systems (e.g. `CreativeFlightSystem`, `WaterbreathingEventSystem`, `AbilityStrengthSystem`, `AbilityDamageResistanceSystem`, `AbilityStatService`).
 
 ### Built‑in abilities (high level)
 
 Movement & survival:
 
 - `creative_flight` (binary) – creative‑style flight.
-- `waterbreathing` (binary) – oxygen bar stays full underwater.
+- `waterbreathing` (binary) – breathe underwater (via `BreathingCheckEvent` on Hytale 0.5+).
 - `oxygen` (numeric) – extra underwater breath (seconds scaled internally).
 - `fall_damage_immunity` (binary) – immune to fall damage.
 - `move_speed` (numeric multiplier) – modifies base walk speed.

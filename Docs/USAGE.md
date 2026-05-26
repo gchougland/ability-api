@@ -15,8 +15,8 @@ This document explains:
 
 - Drop the **AbilityAPI** JAR into your Hytale server’s `mods` folder.
 - Make sure you are using:
-  - The same **Hytale server version** as your other mods
-  - A Java version compatible with your Hytale tooling (AbilityAPI itself targets Java 25 like Orbis Origins, but Gradle handles the toolchain).
+  - **Hytale server 0.5.0 or newer** (AbilityAPI 1.2.0 declares `ServerVersion`: `^0.5.0`)
+  - A Java version compatible with your Hytale tooling (AbilityAPI targets Java 25; Gradle handles the toolchain).
 
 On first run, AbilityAPI will create a data directory similar to:
 
@@ -147,7 +147,7 @@ Below is a brief summary of the most important built‑in abilities. See `PLAN.m
 - `**creative_flight` (binary)**  
   - Enables creative‑style flight for the player.
 - `**waterbreathing` (binary)**  
-  - Player can breathe underwater indefinitely.
+  - Player can breathe underwater (handled via `BreathingCheckEvent` on Hytale 0.5+).
 - `**oxygen` (numeric)**  
   - Extra underwater breath. Each point adds more oxygen units to the player’s max oxygen stat (roughly “seconds” of breath, see code comments for exact scaling).
 - `**fall_damage_immunity` (binary)**  
@@ -236,7 +236,7 @@ dependencies {
 
 ```kotlin
 dependencies {
-    implementation(files("./libs/AbilityAPI-1.0.0.jar"))
+    implementation(files("./libs/AbilityAPI-1.2.0.jar"))
 }
 ```
 

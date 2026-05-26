@@ -8,8 +8,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.util.MathUtil;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3fc;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
@@ -22,6 +21,7 @@ import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 import com.hypixel.hytale.protocol.ChangeVelocityType;
+import org.joml.Vector3d;
 
 /**
  * Allows players with wall_climb to climb any solid surface (spider-style).
@@ -80,8 +80,8 @@ public class WallClimbSystem extends EntityTickingSystem<EntityStore> implements
         if (transformComponent == null) return;
 
         Vector3d position = transformComponent.getPosition();
-        Vector3f rotation = transformComponent.getRotation();
-        float yaw = rotation.getYaw();
+        Rotation3fc rotation = transformComponent.getRotation();
+        float yaw = rotation.yaw();
         double forwardX = -Math.sin(yaw);
         double forwardZ = -Math.cos(yaw);
         double len = Math.sqrt(forwardX * forwardX + forwardZ * forwardZ);

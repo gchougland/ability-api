@@ -15,7 +15,7 @@ import com.hypixel.hytale.component.spatial.SpatialResource;
 import com.hypixel.hytale.component.spatial.SpatialStructure;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
-import com.hypixel.hytale.math.vector.Vector3d;
+import org.joml.Vector3d;
 import com.hypixel.hytale.server.core.modules.entity.EntityModule;
 import com.hypixel.hytale.server.core.modules.entity.component.Interactable;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
@@ -168,7 +168,7 @@ public class ItemMagnetSystem extends EntityTickingSystem<EntityStore> {
             double effectiveRadius = BASE_MAGNET_RANGE * value;
             TransformComponent playerTransform = store.getComponent(playerRef, TransformComponent.getComponentType());
             if (playerTransform == null) continue;
-            double distanceSq = playerTransform.getPosition().distanceSquaredTo(itemPosition);
+            double distanceSq = playerTransform.getPosition().distanceSquared(itemPosition);
             if (distanceSq > effectiveRadius * effectiveRadius) continue;
 
             targetPlayerRef = playerRef;
@@ -181,18 +181,18 @@ public class ItemMagnetSystem extends EntityTickingSystem<EntityStore> {
         if (targetTransform == null) return;
 
         Vector3d targetPosition = targetTransform.getPosition();
-        Vector3d direction = targetPosition.clone().subtract(itemPosition);
+        Vector3d direction = new Vector3d(targetPosition).sub(itemPosition);
         double distance = direction.length();
         if (distance < 1e-6) return;
         if (distance <= PICKUP_RANGE_THRESHOLD) return;
 
-        direction.scale(1.0 / distance);
+        direction.mul(1.0 / distance);
 
         double moveAmount = Math.min(LERP_SPEED * dt, distance - PICKUP_RANGE_THRESHOLD);
         itemPosition.add(
-            direction.getX() * moveAmount,
-            direction.getY() * moveAmount,
-            direction.getZ() * moveAmount
+            direction.x * moveAmount,
+            direction.y * moveAmount,
+            direction.z * moveAmount
         );
     }
 }
