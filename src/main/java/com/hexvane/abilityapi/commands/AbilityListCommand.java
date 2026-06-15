@@ -6,6 +6,7 @@ import com.hexvane.abilityapi.ability.AbilityValue;
 import com.hexvane.abilityapi.data.PlayerAbilityStorage;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.command.system.CommandUtil;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.component.Ref;
@@ -25,6 +26,18 @@ public class AbilityListCommand extends AbstractPlayerCommand {
     public AbilityListCommand(@Nonnull AbilityAPIPlugin plugin) {
         super("list", "List your abilities");
         this.setAllowsExtraArguments(true);
+    }
+
+    @Nonnull
+    @Override
+    public Message getUsageString(@Nonnull CommandSender sender) {
+        return AbilityCommandHelp.listHelp(this);
+    }
+
+    @Nonnull
+    @Override
+    public Message getUsageShort(@Nonnull CommandSender sender, boolean fullyQualify) {
+        return AbilityCommandHelp.usageShort(this, AbilityCommandHelp.LIST_USAGE, fullyQualify);
     }
 
     @Override

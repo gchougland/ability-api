@@ -4,6 +4,10 @@ All notable changes to **AbilityAPI** are documented in this file.
 
 ## [1.2.2] - 2026-06-15
 
+### Added
+
+- **Help Info** All commands now have better info under --help.
+
 ### Fixed
 
 - **Modify Abilities of Others** Fixed issue where the player can't modify the abilities of other players.

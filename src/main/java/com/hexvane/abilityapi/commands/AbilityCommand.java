@@ -1,6 +1,8 @@
 package com.hexvane.abilityapi.commands;
 
 import com.hexvane.abilityapi.AbilityAPIPlugin;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractCommandCollection;
 import javax.annotation.Nonnull;
 
@@ -15,5 +17,11 @@ public class AbilityCommand extends AbstractCommandCollection {
         this.addSubCommand(new AbilityRemoveCommand(plugin));
         this.addSubCommand(new AbilityListCommand(plugin));
         this.addSubCommand(new AbilityAvailableCommand(plugin));
+    }
+
+    @Nonnull
+    @Override
+    public Message getUsageString(@Nonnull CommandSender sender) {
+        return AbilityCommandHelp.rootHelp();
     }
 }

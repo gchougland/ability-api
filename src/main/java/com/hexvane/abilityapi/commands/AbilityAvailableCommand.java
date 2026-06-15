@@ -6,6 +6,7 @@ import com.hexvane.abilityapi.ability.AbilityRegistry;
 import com.hexvane.abilityapi.ability.AbilityType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import java.util.Set;
 import java.util.TreeSet;
@@ -19,6 +20,18 @@ public class AbilityAvailableCommand extends CommandBase {
 
     public AbilityAvailableCommand(@Nonnull AbilityAPIPlugin plugin) {
         super("available", "List all available ability IDs and descriptions");
+    }
+
+    @Nonnull
+    @Override
+    public Message getUsageString(@Nonnull CommandSender sender) {
+        return AbilityCommandHelp.availableHelp(this);
+    }
+
+    @Nonnull
+    @Override
+    public Message getUsageShort(@Nonnull CommandSender sender, boolean fullyQualify) {
+        return AbilityCommandHelp.usageShort(this, AbilityCommandHelp.AVAILABLE_USAGE, fullyQualify);
     }
 
     @Override

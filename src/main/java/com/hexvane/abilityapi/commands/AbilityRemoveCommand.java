@@ -6,6 +6,7 @@ import com.hexvane.abilityapi.data.PlayerAbilityStorage;
 import com.hexvane.abilityapi.systems.AbilityStatService;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.command.system.CommandUtil;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.component.Ref;
@@ -28,6 +29,18 @@ public class AbilityRemoveCommand extends AbstractPlayerCommand {
         this.setAllowsExtraArguments(true);
     }
 
+    @Nonnull
+    @Override
+    public Message getUsageString(@Nonnull CommandSender sender) {
+        return AbilityCommandHelp.removeHelp(this);
+    }
+
+    @Nonnull
+    @Override
+    public Message getUsageShort(@Nonnull CommandSender sender, boolean fullyQualify) {
+        return AbilityCommandHelp.usageShort(this, AbilityCommandHelp.REMOVE_USAGE, fullyQualify);
+    }
+
     @Override
     protected void execute(
             @Nonnull CommandContext context,
@@ -40,7 +53,7 @@ public class AbilityRemoveCommand extends AbstractPlayerCommand {
             rawArgs = rawArgs.substring(6).trim();
         }
         if (rawArgs.isEmpty()) {
-            context.sendMessage(Message.raw("Usage: /ability remove <ability_id> [player]"));
+            context.sendMessage(AbilityCommandHelp.removeHelp(this));
             return;
         }
         String[] parts = SPACES.split(rawArgs.trim());
@@ -50,7 +63,7 @@ public class AbilityRemoveCommand extends AbstractPlayerCommand {
             return;
         }
         if (parts.length > 2) {
-            context.sendMessage(Message.raw("Usage: /ability remove <ability_id> [player]"));
+            context.sendMessage(AbilityCommandHelp.removeHelp(this));
             return;
         }
         PlayerRef targetPlayerRef = playerRef;

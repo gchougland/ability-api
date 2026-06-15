@@ -9,6 +9,7 @@ import com.hexvane.abilityapi.data.PlayerAbilityStorage;
 import com.hexvane.abilityapi.systems.AbilityStatService;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.CommandSender;
 import com.hypixel.hytale.server.core.command.system.CommandUtil;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.component.Ref;
@@ -35,6 +36,18 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
         this.setAllowsExtraArguments(true);
     }
 
+    @Nonnull
+    @Override
+    public Message getUsageString(@Nonnull CommandSender sender) {
+        return AbilityCommandHelp.addHelp(this);
+    }
+
+    @Nonnull
+    @Override
+    public Message getUsageShort(@Nonnull CommandSender sender, boolean fullyQualify) {
+        return AbilityCommandHelp.usageShort(this, AbilityCommandHelp.ADD_USAGE, fullyQualify);
+    }
+
     @Override
     protected void execute(
             @Nonnull CommandContext context,
@@ -48,7 +61,7 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
         }
         String[] parts = SPACES.split(rawArgs, 3);
         if (parts.length < 1 || parts[0].isEmpty()) {
-            context.sendMessage(Message.raw("Usage: /ability add <ability_id> [value] [conditions...] [player]. target_* conditions = victim's health % (for damage abilities)."));
+            context.sendMessage(AbilityCommandHelp.addHelp(this));
             return;
         }
         String abilityId = parts[0];
