@@ -6,13 +6,10 @@ import com.hypixel.hytale.component.CommandBuffer;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.dependency.Dependency;
-import com.hypixel.hytale.component.dependency.Order;
-import com.hypixel.hytale.component.dependency.SystemGroupDependency;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageEventSystem;
-import com.hypixel.hytale.server.core.modules.entity.damage.DamageModule;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
@@ -33,16 +30,7 @@ public class SecondChanceSystem extends DamageEventSystem {
     @Nonnull
     @Override
     public Set<Dependency<EntityStore>> getDependencies() {
-        var damageModule = DamageModule.get();
-        var gatherGroup = damageModule.getGatherDamageGroup();
-        var filterGroup = damageModule.getFilterDamageGroup();
-        if (gatherGroup == null || filterGroup == null) {
-            return Set.of();
-        }
-        return Set.of(
-                new SystemGroupDependency<>(Order.AFTER, gatherGroup),
-                new SystemGroupDependency<>(Order.AFTER, filterGroup)
-        );
+        return DamageModifierPipelineDependencies.afterFilterBeforeApplyDamage();
     }
 
     @Nonnull

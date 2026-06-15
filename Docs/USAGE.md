@@ -173,6 +173,8 @@ Below is a brief summary of the most important built‑in abilities. See `PLAN.m
     - `<0` = weakness (take more damage)
     - `>0` = resistance (take less damage)
   - Types are derived from Hytale’s `DamageCause` assets at startup; see `AbilityAPIPlugin.registerResistanceAbilitiesFromDamageCauses()`.
+- `**invulnerability` (binary)**  
+  - Negates all incoming entity damage (combat, environment, etc.). Does not affect block‑breaking speed (`DamageBlockEvent`).
 - `**second_chance` (binary)**  
   - Prevents death once, restoring the player to low health with a cooldown. Used for “Undead” style species or special perks.
 

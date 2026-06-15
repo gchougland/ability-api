@@ -18,7 +18,7 @@ import javax.annotation.Nonnull;
 
 /**
  * Remove an ability from a player.
- * Usage: /ability remove <ability_id>
+ * Usage: /ability remove &lt;ability_id&gt; [player]
  */
 public class AbilityRemoveCommand extends AbstractPlayerCommand {
     private static final Pattern SPACES = Pattern.compile("\\s+");
@@ -40,16 +40,36 @@ public class AbilityRemoveCommand extends AbstractPlayerCommand {
             rawArgs = rawArgs.substring(6).trim();
         }
         if (rawArgs.isEmpty()) {
-            context.sendMessage(Message.raw("Usage: /ability remove <ability_id>"));
+            context.sendMessage(Message.raw("Usage: /ability remove <ability_id> [player]"));
             return;
         }
-        String abilityId = rawArgs.split("\\s")[0];
+        String[] parts = SPACES.split(rawArgs.trim());
+        String abilityId = parts[0];
         if (!AbilityRegistry.isValid(abilityId)) {
             context.sendMessage(Message.raw("Unknown ability: " + abilityId));
             return;
         }
-        PlayerAbilityStorage.removeAbility(playerRef.getUuid(), abilityId);
-        AbilityStatService.applyForPlayer(ref, store, world);
-        context.sendMessage(Message.raw("Removed " + abilityId));
+        if (parts.length > 2) {
+            context.sendMessage(Message.raw("Usage: /ability remove <ability_id> [player]"));
+            return;
+        }
+        PlayerRef targetPlayerRef = playerRef;
+        if (parts.length == 2) {
+            PlayerRef found = AbilityCommandTargets.findOnlinePlayer(parts[1]);
+            if (found == null) {
+                context.sendMessage(Message.raw("Unknown player: " + parts[1]));
+                return;
+            }
+            targetPlayerRef = found;
+        }
+        PlayerAbilityStorage.removeAbility(targetPlayerRef.getUuid(), abilityId);
+        Ref<EntityStore> targetRef = targetPlayerRef.getReference();
+        if (targetRef != null && targetRef.isValid()) {
+            Store<EntityStore> targetStore = targetRef.getStore();
+            AbilityStatService.applyForPlayer(targetRef, targetStore, targetStore.getExternalData().getWorld());
+        }
+        boolean other = !targetPlayerRef.getUuid().equals(playerRef.getUuid());
+        String targetLabel = other ? " from " + targetPlayerRef.getUsername() : "";
+        context.sendMessage(Message.raw("Removed " + abilityId + targetLabel));
     }
 }

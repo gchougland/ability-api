@@ -6,6 +6,7 @@ import com.hexvane.abilityapi.ability.AbilityValue;
 import com.hexvane.abilityapi.data.PlayerAbilityStorage;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.CommandUtil;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
@@ -17,12 +18,13 @@ import javax.annotation.Nonnull;
 
 /**
  * List abilities for a player.
- * Usage: /ability list
+ * Usage: /ability list [player]
  */
 public class AbilityListCommand extends AbstractPlayerCommand {
 
     public AbilityListCommand(@Nonnull AbilityAPIPlugin plugin) {
         super("list", "List your abilities");
+        this.setAllowsExtraArguments(true);
     }
 
     @Override
@@ -32,12 +34,31 @@ public class AbilityListCommand extends AbstractPlayerCommand {
             @Nonnull Ref<EntityStore> ref,
             @Nonnull PlayerRef playerRef,
             @Nonnull World world) {
-        Map<String, AbilityValue> abilities = PlayerAbilityStorage.getAllAbilities(playerRef.getUuid());
+        String rawArgs = CommandUtil.stripCommandName(context.getInputString()).trim();
+        if (rawArgs.startsWith("list")) {
+            rawArgs = rawArgs.substring(4).trim();
+        }
+        PlayerRef targetPlayerRef = playerRef;
+        if (!rawArgs.isEmpty()) {
+            PlayerRef found = AbilityCommandTargets.findOnlinePlayer(rawArgs);
+            if (found == null) {
+                context.sendMessage(Message.raw("Unknown player: " + rawArgs));
+                return;
+            }
+            targetPlayerRef = found;
+        }
+        Map<String, AbilityValue> abilities = PlayerAbilityStorage.getAllAbilities(targetPlayerRef.getUuid());
         if (abilities.isEmpty()) {
-            context.sendMessage(Message.raw("No abilities granted."));
+            boolean other = !targetPlayerRef.getUuid().equals(playerRef.getUuid());
+            context.sendMessage(Message.raw(other ? targetPlayerRef.getUsername() + " has no abilities granted." : "No abilities granted."));
             return;
         }
-        StringBuilder sb = new StringBuilder("Abilities: ");
+        StringBuilder sb = new StringBuilder();
+        if (!targetPlayerRef.getUuid().equals(playerRef.getUuid())) {
+            sb.append(targetPlayerRef.getUsername()).append("'s abilities: ");
+        } else {
+            sb.append("Abilities: ");
+        }
         boolean first = true;
         for (Map.Entry<String, AbilityValue> e : abilities.entrySet()) {
             if (!first) sb.append(", ");
@@ -46,7 +67,7 @@ public class AbilityListCommand extends AbstractPlayerCommand {
             if (v != null && v.getRaw() instanceof Number n) {
                 sb.append("=").append(n);
             }
-            var conditions = PlayerAbilityStorage.getConditions(playerRef.getUuid(), e.getKey());
+            var conditions = PlayerAbilityStorage.getConditions(targetPlayerRef.getUuid(), e.getKey());
             if (conditions != null && !conditions.isEmpty()) {
                 sb.append(" (");
                 for (int i = 0; i < conditions.size(); i++) {

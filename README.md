@@ -27,6 +27,7 @@ Movement & survival:
 - `waterbreathing` (binary) – oxygen bar stays full underwater.
 - `oxygen` (numeric) – extra underwater breath (seconds scaled internally).
 - `fall_damage_immunity` (binary) – immune to fall damage.
+- `invulnerability` (binary) – immune to all incoming entity damage (not block mining).
 - `move_speed` (numeric multiplier) – modifies base walk speed.
 - `swim_speed` (numeric multiplier) – modifies swim speed.
 - `wall_climb` (binary) – climb solid surfaces.

@@ -48,7 +48,7 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
         }
         String[] parts = SPACES.split(rawArgs, 3);
         if (parts.length < 1 || parts[0].isEmpty()) {
-            context.sendMessage(Message.raw("Usage: /ability add <ability_id> [value] [zone <id> [id...]] [sunlight] [health_below|health_above|target_health_below|target_health_above <percent>]. target_* = victim's health % (for damage abilities)."));
+            context.sendMessage(Message.raw("Usage: /ability add <ability_id> [value] [conditions...] [player]. target_* conditions = victim's health % (for damage abilities)."));
             return;
         }
         String abilityId = parts[0];
@@ -81,18 +81,25 @@ public class AbilityAddCommand extends AbstractPlayerCommand {
                 }
             }
         }
-        PlayerAbilityStorage.setAbility(playerRef.getUuid(), abilityId, value);
-
         String conditionRest = valueEndIndex < parts.length ? String.join(" ", Arrays.asList(parts).subList(valueEndIndex, parts.length)) : null;
-        List<AbilityConditionSpec> conditions = parseConditions(conditionRest);
-        PlayerAbilityStorage.setConditions(playerRef.getUuid(), abilityId, conditions != null ? conditions : List.of());
+        AbilityCommandTargets.ParsedSuffix suffix = AbilityCommandTargets.stripTrailingPlayerName(conditionRest);
+        PlayerRef targetPlayerRef = suffix.target() != null ? suffix.target() : playerRef;
+        List<AbilityConditionSpec> conditions = parseConditions(suffix.remainder());
+        PlayerAbilityStorage.setAbility(targetPlayerRef.getUuid(), abilityId, value);
+        PlayerAbilityStorage.setConditions(targetPlayerRef.getUuid(), abilityId, conditions != null ? conditions : List.of());
 
-        AbilityStatService.applyForPlayer(ref, store, world);
+        Ref<EntityStore> targetRef = targetPlayerRef.getReference();
+        if (targetRef != null && targetRef.isValid()) {
+            Store<EntityStore> targetStore = targetRef.getStore();
+            AbilityStatService.applyForPlayer(targetRef, targetStore, targetStore.getExternalData().getWorld());
+        }
         boolean hasConditions = conditions != null && !conditions.isEmpty();
+        boolean other = !targetPlayerRef.getUuid().equals(playerRef.getUuid());
+        String targetLabel = other ? " to " + targetPlayerRef.getUsername() : "";
         if (def.type() == AbilityType.NUMERIC) {
-            context.sendMessage(Message.raw("Granted " + abilityId + " with value " + value + (hasConditions ? " (with conditions)" : "")));
+            context.sendMessage(Message.raw("Granted " + abilityId + " with value " + value + targetLabel + (hasConditions ? " (with conditions)" : "")));
         } else {
-            context.sendMessage(Message.raw("Granted " + abilityId + (hasConditions ? " (with conditions)" : "")));
+            context.sendMessage(Message.raw("Granted " + abilityId + targetLabel + (hasConditions ? " (with conditions)" : "")));
         }
     }
 

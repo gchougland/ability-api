@@ -15,6 +15,7 @@ import com.hexvane.abilityapi.systems.AbilityStrengthSystem;
 import com.hexvane.abilityapi.systems.CreativeFlightSystem;
 import com.hexvane.abilityapi.systems.DarkVisionSystem;
 import com.hexvane.abilityapi.systems.FallDamageImmunitySystem;
+import com.hexvane.abilityapi.systems.InvulnerabilitySystem;
 import com.hexvane.abilityapi.systems.MiningFortuneEventSystem;
 import com.hexvane.abilityapi.systems.MiningHasteEventSystem;
 import com.hexvane.abilityapi.systems.ConditionalHealthRegenSystem;
@@ -58,6 +59,8 @@ public class AbilityAPIPlugin extends JavaPlugin {
         AbilityRegistry.register(new AbilityDefinition(
                 "fall_damage_immunity", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Immune to fall damage"));
         AbilityRegistry.register(new AbilityDefinition(
+                "invulnerability", AbilityType.BINARY, Boolean.TRUE, 0, 1, "Immune to all incoming entity damage"));
+        AbilityRegistry.register(new AbilityDefinition(
                 "move_speed", AbilityType.NUMERIC, 1.0, 0.5, 3.0, "Movement speed multiplier"));
         AbilityRegistry.register(new AbilityDefinition(
                 "mining_haste", AbilityType.NUMERIC, 1.0, 1, 5, "Faster block breaking (level 1-5)"));
@@ -90,6 +93,7 @@ public class AbilityAPIPlugin extends JavaPlugin {
         this.getEntityStoreRegistry().registerSystem(new AbilityInitSystem());
         this.getEntityStoreRegistry().registerSystem(new MovementAbilitiesReapplySystem());
         this.getEntityStoreRegistry().registerSystem(new FallDamageImmunitySystem());
+        this.getEntityStoreRegistry().registerSystem(new InvulnerabilitySystem());
         this.getEntityStoreRegistry().registerSystem(new SecondChanceSystem());
         this.getEntityStoreRegistry().registerSystem(new WallClimbSystem());
         this.getEntityStoreRegistry().registerSystem(new AbilityDamageResistanceSystem());
