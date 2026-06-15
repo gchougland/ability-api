@@ -25,7 +25,7 @@ import com.hexvane.abilityapi.systems.ItemMagnetSystem;
 import com.hexvane.abilityapi.systems.MovementAbilitiesReapplySystem;
 import com.hexvane.abilityapi.systems.SecondChanceSystem;
 import com.hexvane.abilityapi.systems.WallClimbSystem;
-import com.hexvane.abilityapi.systems.WaterbreathingSystem;
+import com.hexvane.abilityapi.systems.WaterbreathingEventSystem;
 import com.hypixel.hytale.logger.HytaleLogger;
 import java.util.logging.Level;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
@@ -89,7 +89,7 @@ public class AbilityAPIPlugin extends JavaPlugin {
         registerResistanceAbilitiesFromDamageCauses();
 
         this.getEntityStoreRegistry().registerSystem(new CreativeFlightSystem());
-        this.getEntityStoreRegistry().registerSystem(new WaterbreathingSystem());
+        this.getEntityStoreRegistry().registerSystem(new WaterbreathingEventSystem());
         this.getEntityStoreRegistry().registerSystem(new AbilityInitSystem());
         this.getEntityStoreRegistry().registerSystem(new MovementAbilitiesReapplySystem());
         this.getEntityStoreRegistry().registerSystem(new FallDamageImmunitySystem());

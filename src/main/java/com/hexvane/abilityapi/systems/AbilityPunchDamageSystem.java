@@ -9,6 +9,7 @@ import com.hypixel.hytale.component.dependency.Dependency;
 import com.hypixel.hytale.component.dependency.Order;
 import com.hypixel.hytale.component.dependency.SystemGroupDependency;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entity.damage.Damage;
 import com.hypixel.hytale.server.core.modules.entity.damage.DamageCause;
@@ -78,7 +79,7 @@ public class AbilityPunchDamageSystem extends DamageEventSystem {
         if (attackerPlayer == null) return;
 
         // Only apply punch_damage when attacking with fists (empty hand / no weapon)
-        if (!ItemStack.isEmpty(attackerPlayer.getInventory().getItemInHand())) return;
+        if (!ItemStack.isEmpty(InventoryComponent.getItemInHand(store, attackerRef))) return;
 
         PlayerRef attackerPlayerRef = store.getComponent(attackerRef, PlayerRef.getComponentType());
         if (attackerPlayerRef == null) return;

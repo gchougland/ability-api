@@ -21,6 +21,13 @@ All notable changes to **AbilityAPI** are documented in this file.
 - **`invulnerability` (binary)** — `InvulnerabilitySystem` sets incoming entity damage to zero when the ability is active (registered after `FallDamageImmunitySystem`, before `SecondChanceSystem`).
 - **Mining fortune** — `Ore_Thorium_Mud` added to the fortune block config (`mining_fortune_blocks.json`).
 
+### Changed
+
+- **Hytale 0.5.0** — Targets Hytale server `^0.5.0` (semver `ServerVersion` in manifest; no longer uses the legacy `YYYY.MM.DD-<sha>` pin).
+- **Waterbreathing** — Uses `BreathingCheckEvent` so players with the ability can breathe in fluids under the 0.5 `BreathingComponent` / suffocation pipeline (oxygen-stat top-up alone is insufficient).
+- **Math types** — `Vector3d` / block positions use `org.joml` types; rotations use `Rotation3fc` / `Rotation3f` where the server API changed.
+- **Punch damage** — Uses `InventoryComponent.getItemInHand` instead of the deprecated `Inventory.getItemInHand()`.
+
 ## [1.1.0] - 2026-03-26
 
 ### Changed

@@ -9,8 +9,9 @@ import com.hypixel.hytale.component.Holder;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
-import com.hypixel.hytale.math.vector.Vector3d;
-import com.hypixel.hytale.math.vector.Vector3f;
+import com.hypixel.hytale.math.vector.Rotation3f;
+import org.joml.Vector3d;
+import org.joml.Vector3i;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockBreakingDropType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -68,12 +69,13 @@ public class MiningFortuneEventSystem extends EntityEventSystem<EntityStore, Bre
         DropParams dropParams = getDropParams(blockType);
         if (dropParams == null) return;
 
-        Vector3d position = event.getTargetBlock().toVector3d().add(0.5, 0.0, 0.5);
+        Vector3i block = event.getTargetBlock();
+        Vector3d position = new Vector3d(block.x() + 0.5, block.y(), block.z() + 0.5);
 
         for (int i = 0; i < level; i++) {
             List<ItemStack> drops = BlockHarvestUtils.getDrops(blockType, dropParams.quantity, dropParams.itemId, dropParams.dropListId);
             if (drops.isEmpty()) continue;
-            Holder<EntityStore>[] holders = ItemComponent.generateItemDrops(store, drops, position, Vector3f.ZERO);
+            Holder<EntityStore>[] holders = ItemComponent.generateItemDrops(store, drops, position, Rotation3f.ZERO);
             if (holders != null && holders.length > 0) {
                 commandBuffer.addEntities(holders, AddReason.SPAWN);
             }
